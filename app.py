@@ -4,11 +4,19 @@ import numpy as np
 
 app = Flask(__name__)
 
-# Load the saved artifacts
-model = joblib.load('breast_cancer_model.pkl')
-scaler = joblib.load('breast_cancer_scaler.pkl')
-le = joblib.load('label_encoder.pkl')
-selected_genes = joblib.load('selected_genes.pkl')
+
+import os
+
+# Get the absolute path to the directory where app.py lives
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Load the models using absolute paths
+model = joblib.load(os.path.join(BASE_DIR, 'breast_cancer_model.pkl'))
+scaler = joblib.load(os.path.join(BASE_DIR, 'breast_cancer_scaler.pkl'))
+le = joblib.load(os.path.join(BASE_DIR, 'label_encoder.pkl'))
+selected_genes = joblib.load(os.path.join(BASE_DIR, 'selected_genes.pkl'))
+
+
 
 @app.route('/')
 def home():
