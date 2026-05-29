@@ -1,52 +1,112 @@
-import streamlit
-import joblib
+
+import streamlit as st
 import numpy as np
+import pandas as pd
+import joblib
 
-app = streamlit(__name__)
+st.set_page_config(
+    page_title="Cancer Classification App",
+    page_icon="🧬",
+    layout="centered"
+)
+
+st.title("🧬 Cancer Classification App")
+st.write(
+    "This machine learning application predicts cancer subtypes "
+    "based on protein expression values."
+)
+
+@st.cache_resource
+def load_model():
+    model = joblib.load("model.pkl")
+    return model
+
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
+
+st.sidebar.header("Input Features")
+
+her2 = st.sidebar.number_input(
+    "HER2 Expression",
+    min_value=0.0,
+    max_value=100.0,
+    value=10.0
+)
+
+basal = st.sidebar.number_input(
+    "Basal Expression",
+    min_value=0.0,
+    max_value=100.0,
+    value=20.0
+)
+
+luminal_a = st.sidebar.number_input(
+    "Luminal A Expression",
+    min_value=0.0,
+    max_value=100.0,
+    value=30.0
+)
+
+luminal_b = st.sidebar.number_input(
+    "Luminal B Expression",
+    min_value=0.0,
+    max_value=100.0,
+    value=40.0
+)
+
+input_data = np.array([
+    [
+        her2,
+        basal,
+        luminal_a,
+        luminal_b
+    ]
+])
 
 
-import os
+st.subheader("Input Data")
 
-# Get the absolute path to the directory where app.py lives
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+input_df = pd.DataFrame(
+    input_data,
+    columns=[
+        "HER2",
+        "Basal",
+        "Luminal A",
+        "Luminal B"
+    ]
+)
 
-# Load the models using absolute paths
-model = joblib.load(os.path.join(BASE_DIR, 'breast_cancer_model.pkl'))
-scaler = joblib.load(os.path.join(BASE_DIR, 'breast_cancer_scaler.pkl'))
-le = joblib.load(os.path.join(BASE_DIR, 'label_encoder.pkl'))
-selected_genes = joblib.load(os.path.join(BASE_DIR, 'selected_genes.pkl'))
+st.dataframe(input_df)
 
 
+if st.button("Predict Cancer Type"):
 
-@app.route('/')
-def home():
-    return render_template('index.html', gene_count=len(selected_genes))
-
-@app.route('/predict', methods=['POST'])
-def predict():
     try:
-        input_string = request.form.get('gene_expressions')
-        features = [float(x.strip()) for x in input_string.split(',')]
+        prediction = model.predict(input_data)
 
-        if len(features) != len(selected_genes):
-            error_msg = f"Error: Expected {len(selected_genes)} gene values, but got {len(features)}."
-            return render_template('index.html', error=error_msg, gene_count=len(selected_genes))
+        st.subheader("Prediction Result")
 
-        features_array = np.array(features).reshape(1, -1)
-        features_scaled = scaler.transform(features_array)
-        prediction_encoded = model.predict(features_scaled)
-        prediction_label = le.inverse_transform(prediction_encoded)[0]
+        st.success(f"Predicted Class: {prediction[0]}")
 
-        return render_template(
-            'index.html',
-            prediction_text=f'Predicted Subtype: {prediction_label}',
-            gene_count=len(selected_genes)
-        )
+        # Optional probability support
+        if hasattr(model, "predict_proba"):
 
-    except ValueError:
-        return render_template('index.html', error="Error: Please ensure all values are numbers separated by commas.", gene_count=len(selected_genes))
+            probabilities = model.predict_proba(input_data)[0]
+
+            prob_df = pd.DataFrame({
+                "Class": model.classes_,
+                "Probability": probabilities
+            })
+
+            st.subheader("Prediction Probabilities")
+            st.dataframe(prob_df)
+
     except Exception as e:
-        return render_template('index.html', error=f"An unexpected error occurred: {str(e)}", gene_count=len(selected_genes))
+        st.error(f"Prediction error: {e}")
 
-if __name__ == "__main__":
-    app.run()
+st.markdown("---")
+st.caption("Built with Streamlit and Scikit-learn")
+
