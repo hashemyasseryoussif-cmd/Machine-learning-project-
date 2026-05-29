@@ -6,11 +6,11 @@ import joblib
 
 st.set_page_config(
     page_title="Cancer Classification App",
-    page_icon="🧬",
+    page_icon="",
     layout="centered"
 )
 
-st.title("🧬 Cancer Classification App")
+st.title(" Cancer Classification App")
 st.write(
     "This machine learning application predicts cancer subtypes "
     "based on protein expression values."
@@ -18,7 +18,7 @@ st.write(
 
 @st.cache_resource
 def load_model():
-    model = joblib.load("model.pkl")
+    model = joblib.load("breast_cancer_model.pkl")
     return model
 
 try:
