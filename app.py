@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request
+import streamlit
 import joblib
 import numpy as np
 
-app = Flask(__name__)
+app = streamlit(__name__)
 
 
 import os
@@ -49,4 +49,4 @@ def predict():
         return render_template('index.html', error=f"An unexpected error occurred: {str(e)}", gene_count=len(selected_genes))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
