@@ -18,7 +18,7 @@ st.write(
 
 @st.cache_resource
 def load_model():
-    model = joblib.load("breast_cancer_model_2.pkl")
+    model = joblib.load("breast_cancer_model (1).pkl")
     return model
 
 try:
